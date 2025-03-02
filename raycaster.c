@@ -33,6 +33,7 @@ bool raycaster_start() {
         .y = (float) cam.pos.y
     };
 
+
     /* Main loop here */
     while (running)  {
         
@@ -59,6 +60,10 @@ bool raycaster_start() {
                     case SDLK_d: cam.right = false; break;
                 }
                 break;
+            case SDL_WINDOWEVENT:
+                   if (event.window.event == SDL_WINDOWEVENT_RESIZED)
+                       sdl_on_resize(&sdl, &config, &map);
+                break;
             case SDL_QUIT:
                 running = false;
                 break;
@@ -84,7 +89,6 @@ bool raycaster_start() {
         DDA();
 
         sdl_present_result(&sdl);
-
     } 
 }
 

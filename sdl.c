@@ -72,9 +72,14 @@ SDL_Event sdl_get_input() {
     }
 }
 
-/*void sdl_on_resize(config_t *config, map_t *map) {
+void sdl_on_resize(sdl_t *sdl, config_t *config, map_t *map) {
+    int new_w, new_h;
+    SDL_GetWindowSize(sdl->window, &new_w, &new_h);
+    config->window_w = new_w;
+    config->window_h = new_h;
+
     map->pps = config->window_h / map->height;
-}*/
+}
 
 void sdl_clear_screen(sdl_t *sdl, uint32_t color) {
     uint8_t r = (color >> 24) & 0xFF;
