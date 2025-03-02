@@ -11,6 +11,8 @@
     #define M_PI 3.142592
 #endif
 
+#define ONE_RADIANT 0.0174533
+
 bool raycaster_init();
 
 bool raycaster_start();
