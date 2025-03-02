@@ -22,38 +22,57 @@ bool raycaster_start() {
     /* main loop here */
     bool running = true;
 
-    /* Loop here */
+    uint32_t last_time = SDL_GetTicks();
+
+    uint32_t current_time;
+    float delta_time;
+
+    /* storing camera position in float value to use normalized movement */
+    vec2f_t f_cam_pos = {
+        .x = (float) cam.pos.x,
+        .y = (float) cam.pos.y
+    };
+
+    /* Main loop here */
     while (running)  {
+        
+        current_time = SDL_GetTicks();
+        delta_time = (current_time - last_time) / 1000.0f; // convert ms to sec
+        last_time = current_time;
 
         SDL_Event event = sdl_get_input(); 
         switch(event.type) {
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym) {
-                    case SDLK_w:
-                        cam.pos.y--;
-                        break;
-                    case SDLK_a:
-                        cam.pos.x--;
-                        break;
-                    case SDLK_s:
-                        cam.pos.y++;
-                        break;
-                    case SDLK_d:
-                        cam.pos.x++;
-                        break;
-                    case SDLK_q:
-                        running = false;
-                        break;
+                    case SDLK_w: cam.up = true; break;
+                    case SDLK_a: cam.left = true; break;
+                    case SDLK_s: cam.down = true; break;
+                    case SDLK_d: cam.right = true; break;
+                    case SDLK_q: running = false; break;
                 }
                 break;
             case SDL_KEYUP:
+                switch(event.key.keysym.sym) {
+                    case SDLK_w: cam.up = false; break;
+                    case SDLK_a: cam.left = false; break;
+                    case SDLK_s: cam.down = false; break;
+                    case SDLK_d: cam.right = false; break;
+                }
                 break;
             case SDL_QUIT:
                 running = false;
                 break;
         }
-
         
+        // move camera
+        if (cam.up)    f_cam_pos.y -= cam.speed * delta_time;
+        if (cam.down)  f_cam_pos.y += cam.speed * delta_time;
+        if (cam.left)  f_cam_pos.x -= cam.speed * delta_time;
+        if (cam.right) f_cam_pos.x += cam.speed * delta_time;
+        
+        cam.pos.x = (int) f_cam_pos.x;
+        cam.pos.y = (int) f_cam_pos.y;
+
         /* render */
         sdl_clear_screen(&sdl, 0x000000);
 
@@ -65,6 +84,7 @@ bool raycaster_start() {
         DDA();
 
         sdl_present_result(&sdl);
+
     } 
 }
 

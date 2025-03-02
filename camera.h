@@ -1,15 +1,16 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-typedef struct {
-    int x, y;
-} vec2_t;
+#include <stdbool.h>
+#include "utils.h"
+
+#define DEFAULT_SPEED 100.0f
 
 typedef struct {
     vec2_t pos;
-    vec2_t dir;
-    vec2_t plane;
 
+    float speed; // pixel movement per second
+    bool up, down, left, right;
     float fov;
 } camera_t;
 
