@@ -68,8 +68,11 @@ bool raycaster_start() {
                     case SDLK_s: cam.down = true; break;
                     case SDLK_d: cam.right = true; break;
                     case SDLK_LSHIFT: cam.speed = DEFAULT_SHIFT_SPEED; break;
+                       
+                    case SDLK_v: mode = mode == MODE_2D ? MODE_3D : MODE_2D;
+                                 sdl_tick_cursor(&config); 
+                                 break;
 
-                    case SDLK_v: mode = mode == MODE_2D ? MODE_3D : MODE_2D; break;
                     case SDLK_m: mode = MODE_MAP_EDITOR; break;
 
                     case SDLK_p: config.pixel_outlines = !config.pixel_outlines; break;
@@ -101,11 +104,25 @@ bool raycaster_start() {
         }
         
         // move camera
-        if (cam.up)    f_cam_pos.y -= cam.speed * delta_time;
-        if (cam.down)  f_cam_pos.y += cam.speed * delta_time;
-        if (cam.left)  f_cam_pos.x -= cam.speed * delta_time;
-        if (cam.right) f_cam_pos.x += cam.speed * delta_time;
-        
+        if (mode == MODE_2D) {
+            if (cam.up)    f_cam_pos.y -= cam.speed * delta_time;
+            if (cam.down)  f_cam_pos.y += cam.speed * delta_time;
+            if (cam.left)  f_cam_pos.x -= cam.speed * delta_time;
+            if (cam.right) f_cam_pos.x += cam.speed * delta_time;
+        }
+        else if (mode == MODE_3D) {
+            if (cam.up) { 
+                f_cam_pos.x += (cos(cam.dir_angle) * cam.speed) * delta_time; 
+                f_cam_pos.y -= (sin(cam.dir_angle) * cam.speed) * delta_time; 
+            }
+            if (cam.down) {
+                f_cam_pos.x -= (cos(cam.dir_angle) * cam.speed) * delta_time; 
+                f_cam_pos.y += (sin(cam.dir_angle) * cam.speed) * delta_time; 
+            }
+            if (cam.right) cam.dir_angle -= cam.rotation_speed * delta_time;
+            if (cam.left)  cam.dir_angle += cam.rotation_speed * delta_time;
+        }
+
         cam.pos.x = (int) f_cam_pos.x;
         cam.pos.y = (int) f_cam_pos.y;
 
@@ -132,20 +149,22 @@ void DDA() {
     // keep theese variables here for now
     int rays[(int)cam.fov];
 
-    vec2_t mouse_coords = {0}; // this will contain x1, y1
-    SDL_GetMouseState(&mouse_coords.x, &mouse_coords.y);
+    if (config.show_cursor) {
+        vec2_t mouse_coords = {0}; // this will contain x1, y1
+        SDL_GetMouseState(&mouse_coords.x, &mouse_coords.y);
 
-    vec2_t dir = {0};
-    dir.x = mouse_coords.x - cam.pos.x;
-    dir.y = mouse_coords.y - cam.pos.y;
+        vec2_t dir = {0};
+        dir.x = mouse_coords.x - cam.pos.x;
+        dir.y = mouse_coords.y - cam.pos.y;
 
-    /* since our coordinate system has opposite y axis direction
-     * but normal degrees directions we use - sign in atan2 function
-     * atan2 function only gives positive numbers when the range is 0-PI
-     * so when angle is < 0 we add 2PI (360 degrees) to it */
-    cam.dir_angle = -atan2((double)dir.y, (double)dir.x); // angle in radians
-    if (cam.dir_angle < 0) cam.dir_angle += 2 * M_PI;
-    
+        /* since our coordinate system has opposite y axis direction
+         * but normal degrees directions we use - sign in atan2 function
+         * atan2 function only gives positive numbers when the range is 0-PI
+         * so when angle is < 0 we add 2PI (360 degrees) to it */
+        cam.dir_angle = -atan2((double)dir.y, (double)dir.x); // angle in radians
+        if (cam.dir_angle < 0) cam.dir_angle += 2 * M_PI;
+    }
+
     /* angle will be the angle of the next ray */
     double angle = cam.dir_angle;
     angle += (cam.fov / 2) * ONE_RADIANT;

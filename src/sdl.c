@@ -83,6 +83,11 @@ void sdl_on_resize(sdl_t *sdl, config_t *config, map_t *map) {
     map->pps = config->window_h / map->height;
 }
 
+void sdl_tick_cursor(config_t *config) {
+    config->show_cursor = !config->show_cursor;
+    if (config->show_cursor) SDL_ShowCursor(SDL_ENABLE);
+    else SDL_ShowCursor(SDL_DISABLE);
+}
 void sdl_clear_screen(sdl_t *sdl, uint32_t color) {
     uint8_t r = (color >> 24) & 0xFF;
     uint8_t g = (color >> 16) & 0xFF;

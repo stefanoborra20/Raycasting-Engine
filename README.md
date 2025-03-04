@@ -16,13 +16,15 @@ make
 
 ## Usage/Examples
 
-- [v] switch 2D/3D mode
-- [p] enable/disable squares outlines
-- [q] quit engine
+- [v] Switch 2D/3D mode
+- [p] Enable/disable squares outlines
+- [q] Quit engine
 
 ### 2D mode
-- [WASD] movement
-- [Mouse] view direction
+- [WASD] Movement
+- [Mouse] View direction
 
 ### 3D mode
-- [ ] todo 
+- [w] Up
+- [s] Down
+- [a/d] Turn view left/right 

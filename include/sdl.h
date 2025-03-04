@@ -36,6 +36,8 @@ SDL_Event sdl_get_input();
 
 void sdl_on_resize(sdl_t *, config_t *, map_t *);
 
+void sdl_tick_cursor(config_t *);
+
 // rendering
 void sdl_clear_screen(sdl_t *, uint32_t);
 
