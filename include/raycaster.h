@@ -2,6 +2,7 @@
 #define RAYCASTER_H
 
 #include <math.h>
+#include <limits.h>
 #include "utils.h"
 #include "sdl.h"
 #include "camera.h"

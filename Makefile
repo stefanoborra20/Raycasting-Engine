@@ -1,9 +1,9 @@
 CC = gcc
-
-CFLAGS = -std=c17 -Wall -Wextra
+INCLUDE_DIR = -Iinclude
+CFLAGS = $(INCLUDE_DIR) -std=c17 -Wall -Wextra
 LDFLAGS = `sdl2-config --cflags --libs` -lm
 
-SRCS = $(wildcard *.c)
+SRCS = $(wildcard src/*.c)
 
 all: rc
 

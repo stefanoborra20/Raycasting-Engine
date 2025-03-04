@@ -243,15 +243,15 @@ void DDA() {
         if (h_hit)
             ray_length_1d.x = abs(sqrt(pow(cam.pos.x - AP.x, 2) + pow(cam.pos.y - AP.y, 2)));
         else
-            ray_length_1d.x = 999;
+            ray_length_1d.x = INT_MAX;
 
         if (v_hit)
             ray_length_1d.y = abs(sqrt(pow(cam.pos.x - BP.x, 2) + pow(cam.pos.y - BP.y, 2)));
         else 
-            ray_length_1d.y = 999;
+            ray_length_1d.y = INT_MAX;
 
         if (mode == MODE_2D) {
-            if (ray_length_1d.x <= ray_length_1d.y)
+            if (ray_length_1d.x < ray_length_1d.y)
                 sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, AP.x, AP.y);
             else
                 sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, BP.x, BP.y);
@@ -259,7 +259,7 @@ void DDA() {
         else {
             bool side;
             int distance;
-            if (ray_length_1d.x <= ray_length_1d.y) {
+            if (ray_length_1d.x < ray_length_1d.y) {
                 distance = ray_length_1d.x;
                 side = false; 
             }
