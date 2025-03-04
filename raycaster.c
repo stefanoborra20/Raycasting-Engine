@@ -1,9 +1,14 @@
 #include "raycaster.h"
 
+/* Globals */
 sdl_t sdl = {0};
 config_t config = {0};
 camera_t cam = {0};
 map_t map = {0};
+
+projection_plane_t proj_plane = {0};
+
+int mode;
 
 bool raycaster_init() {
     
@@ -14,6 +19,13 @@ bool raycaster_init() {
     camera_init(&cam, 50, 50);
     
     map_init(&map, 0, 0, config.window_h);
+
+    mode = MODE_2D;
+
+    // init projection plane values
+    proj_plane.w = config.window_w;
+    proj_plane.h = config.window_h;
+    proj_plane.width_per_line =  proj_plane.w / cam.fov;
 
     return true;
 }
@@ -33,6 +45,12 @@ bool raycaster_start() {
         .y = (float) cam.pos.y
     };
 
+    // for debug
+    map.map_data[3][2] = 1;
+    map.map_data[3][3] = 1;
+    map.map_data[3][4] = 1;
+    map.map_data[3][5] = 1;
+    map.map_data[3][6] = 1;
 
     /* Main loop here */
     while (running)  {
@@ -49,6 +67,12 @@ bool raycaster_start() {
                     case SDLK_a: cam.left = true; break;
                     case SDLK_s: cam.down = true; break;
                     case SDLK_d: cam.right = true; break;
+                    case SDLK_LSHIFT: cam.speed = DEFAULT_SHIFT_SPEED; break;
+
+                    case SDLK_v: mode = mode == MODE_2D ? MODE_3D : MODE_2D; break;
+                    case SDLK_m: mode = MODE_MAP_EDITOR; break;
+
+                    case SDLK_p: config.pixel_outlines = !config.pixel_outlines; break;
                     case SDLK_q: running = false; break;
                 }
                 break;
@@ -58,11 +82,18 @@ bool raycaster_start() {
                     case SDLK_a: cam.left = false; break;
                     case SDLK_s: cam.down = false; break;
                     case SDLK_d: cam.right = false; break;
+                    case SDLK_LSHIFT: cam.speed = DEFAULT_SPEED; break;
                 }
                 break;
             case SDL_WINDOWEVENT:
-                   if (event.window.event == SDL_WINDOWEVENT_RESIZED)
-                       sdl_on_resize(&sdl, &config, &map);
+                   if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        sdl_on_resize(&sdl, &config, &map);
+                        
+                        // resize projection plane attributes
+                        proj_plane.w = config.window_w;
+                        proj_plane.h = config.window_h;
+                        proj_plane.width_per_line =  proj_plane.w / cam.fov;
+                   }
                 break;
             case SDL_QUIT:
                 running = false;
@@ -81,9 +112,10 @@ bool raycaster_start() {
         /* render */
         sdl_clear_screen(&sdl, 0x000000);
 
-        sdl_render_map(&sdl, &config, &map);
-
-        sdl_render_camera(&sdl, cam.pos.x, cam.pos.y);
+        if (mode == MODE_2D) {
+            sdl_render_map(&sdl, &config, &map);
+            sdl_render_camera(&sdl, cam.pos.x, cam.pos.y);
+        }
 
         // perform DDA
         DDA();
@@ -97,6 +129,9 @@ bool raycaster_quit() {
 }
 
 void DDA() {
+    // keep theese variables here for now
+    int rays[(int)cam.fov];
+
     vec2_t mouse_coords = {0}; // this will contain x1, y1
     SDL_GetMouseState(&mouse_coords.x, &mouse_coords.y);
 
@@ -215,10 +250,38 @@ void DDA() {
         else 
             ray_length_1d.y = 999;
 
-        if (ray_length_1d.x < ray_length_1d.y)
-            sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, AP.x, AP.y);
-        else
-            sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, BP.x, BP.y);
+        if (mode == MODE_2D) {
+            if (ray_length_1d.x <= ray_length_1d.y)
+                sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, AP.x, AP.y);
+            else
+                sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, BP.x, BP.y);
+        }
+        else {
+            bool side;
+            int distance;
+            if (ray_length_1d.x <= ray_length_1d.y) {
+                distance = ray_length_1d.x;
+                side = false; 
+            }
+            else {
+                distance = ray_length_1d.y;
+                side = true; 
+            }
+
+            // adjust fish-eye
+            double adj_angle = cam.dir_angle - angle;
+            if (adj_angle < 0) adj_angle += 2 * M_PI;
+            if (adj_angle > 2 * M_PI) adj_angle -= 2 * M_PI;
+            distance *= cos(adj_angle);
+
+            double projected_wall_height = (map.wall_h_3d * proj_plane.w) / distance; 
+            int rect_x = r * proj_plane.width_per_line; 
+            int rect_y = (proj_plane.h / 2) - (projected_wall_height / 2);
+            int rect_w = proj_plane.width_per_line; 
+
+            sdl_render_rect(&sdl, &config, rect_x, rect_y, rect_w, projected_wall_height, side);
+        }
+
 
         // increment angle for the next ray
         angle -= ONE_RADIANT;

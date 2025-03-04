@@ -11,6 +11,8 @@ bool config_init(config_t *config) {
     // colors
     config->walls_color = 0xFF000000; // red 
     config->rays_color = 0xFFFF0000; // yellow
+    config->walls_3d_color = 0x00900000; // green
+    config->walls_side_3d_color = 0x00700000; // dark green
     
     // other
     config->pixel_outlines = true; 
@@ -147,4 +149,29 @@ void sdl_render_ray(sdl_t *sdl, config_t *config, int x0, int y0, int x1, int y1
 
     // render ray
     SDL_RenderDrawLine(sdl->renderer, x0 + 5, y0 + 5, x1, y1);
+}
+
+void sdl_render_rect(sdl_t *sdl, config_t *config, int x, int y, int w, int h, bool side) {
+    
+    uint32_t color = side == true ? config->walls_3d_color : config->walls_side_3d_color;
+
+    SDL_Rect col = {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
+
+    uint8_t r = (color >> 24) & 0xFF;
+    uint8_t g = (color >> 16) & 0xFF;
+    uint8_t b = (color >> 8) & 0xFF;
+    uint8_t a = (color >> 4) & 0xFF; 
+    
+    SDL_SetRenderDrawColor(sdl->renderer, r, g, b, a);
+    SDL_RenderFillRect(sdl->renderer, &col);
+
+    if (config->pixel_outlines) {
+       SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 255);
+       SDL_RenderDrawRect(sdl->renderer, &col);
+    }
 }

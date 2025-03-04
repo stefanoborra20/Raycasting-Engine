@@ -6,11 +6,14 @@
 
 #define MAP_DEFAULT_WIDTH 20
 #define MAP_DEFAULT_HEIGHT 20
+#define MAP_DEFAULT_WALL_HEIGHT_3D 64
 
 typedef struct {
     int width, height;
-    int pps; // pixel per square
+    int pps; // pixels per square
     int **map_data;
+
+    int wall_h_3d;
 } map_t;
 
 void map_init(map_t*, int w, int h, int window_h);

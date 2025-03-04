@@ -13,6 +13,15 @@
 
 #define ONE_RADIANT 0.0174533
 
+#define MODE_2D 0
+#define MODE_3D 1
+#define MODE_MAP_EDITOR 3
+
+typedef struct {
+    int w, h;
+    int width_per_line;
+} projection_plane_t;
+
 bool raycaster_init();
 
 bool raycaster_start();

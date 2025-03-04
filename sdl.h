@@ -18,6 +18,8 @@ typedef struct {
     // colors
     uint32_t walls_color; // wall color in 2D vision
     uint32_t rays_color; // rays color in 2D vision
+    uint32_t walls_3d_color; // wall color in 3D vision
+    uint32_t walls_side_3d_color; // wall shading when seen from the side
 
     // others
     bool pixel_outlines;
@@ -44,5 +46,7 @@ bool sdl_render_camera(sdl_t *, int, int);
 void sdl_render_map(sdl_t *, config_t *, map_t *);
 
 void sdl_render_ray(sdl_t *, config_t *, int, int, int, int);
+                         
+void sdl_render_rect(sdl_t *, config_t *, int, int, int, int, bool);
 
 #endif

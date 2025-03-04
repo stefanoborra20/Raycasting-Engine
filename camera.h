@@ -5,6 +5,7 @@
 #include "utils.h"
 
 #define DEFAULT_SPEED 100.0f
+#define DEFAULT_SHIFT_SPEED 60.0f
 #define DEFAULT_FOV 60
 
 typedef struct {

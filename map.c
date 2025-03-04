@@ -11,6 +11,8 @@ void map_init(map_t *map, int w, int h, int window_h) {
 
     map->pps = window_h / map->height;
 
+    map->wall_h_3d = MAP_DEFAULT_WALL_HEIGHT_3D; 
+
     map->map_data = (int **) malloc(h * sizeof(int*));
     for (int i = 0; i < h; i++) map->map_data[i] = (int *) malloc(w * sizeof(int));
 
