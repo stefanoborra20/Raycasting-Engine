@@ -12,7 +12,7 @@
 typedef struct {
     vec2_t pos;
     double dir_angle;
-    float speed; // pixel movement per second
+    float speed;          // pixel movement per second
     float rotation_speed; // in pixels per second
     bool up, down, left, right;
     float fov;

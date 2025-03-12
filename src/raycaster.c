@@ -145,146 +145,132 @@ bool raycaster_quit() {
     sdl_quit(&sdl);
 }
 
-void DDA() {
-    // keep theese variables here for now
-    int rays[(int)cam.fov];
 
+void DDA() {
     if (config.show_cursor) {
-        vec2_t mouse_coords = {0}; // this will contain x1, y1
+        vec2_t mouse_coords = {0};
         SDL_GetMouseState(&mouse_coords.x, &mouse_coords.y);
 
         vec2_t dir = {0};
         dir.x = mouse_coords.x - cam.pos.x;
         dir.y = mouse_coords.y - cam.pos.y;
-
-        /* since our coordinate system has opposite y axis direction
-         * but normal degrees directions we use - sign in atan2 function
-         * atan2 function only gives positive numbers when the range is 0-PI
-         * so when angle is < 0 we add 2PI (360 degrees) to it */
-        cam.dir_angle = -atan2((double)dir.y, (double)dir.x); // angle in radians
+        /* Since y-axis is inverted but angle system is regular we add
+         * (-) to atan2 function, then because atan2 only gives numbers 
+         * in the range of 0-PI and -PI-0 we add 2xPI when angle is <0 */
+        cam.dir_angle = -atan2((double)dir.y, (double)dir.x); // angle in radiants
         if (cam.dir_angle < 0) cam.dir_angle += 2 * M_PI;
     }
 
-    /* angle will be the angle of the next ray */
     double angle = cam.dir_angle;
     angle += (cam.fov / 2) * ONE_RADIANT;
     if (angle > 2 * M_PI) angle -= 2 * M_PI;
 
-    for (int r = 0; r < cam.fov; r++) {
+#ifdef DEBUG
+    printf("Camera Angle: %.2f\nRay Angle: %.2f\n", cam.dir_angle, angle);
+#endif
 
-        /* AP will be our horizontal line intersection point
-         * with Xa and Ya being its increment each time there's no hit */
-        vec2_t AP = {0};
-        int AP_Xa;
-        int AP_Ya;
+    vec2f_t hp = {0}; // Horizontal intersection point
+    vec2f_t vp = {0}; // Vertical intersection point
+    float hp_xa, hp_ya;
+    float vp_xa, vp_ya;
 
-        /* BP will be vertical line intersection point */
-        vec2_t BP = {0};
-        int BP_Xa;
-        int BP_Ya;
-
-        // calculate AP.y and AP_Ya
+    for (int r = 0; r < 60; r++) {
+        // Calculate horizontal point first xa and ya
         if (angle >= 0 && angle <= M_PI) {
-            AP.y = (cam.pos.y / map.pps) * map.pps - 1;
-            AP_Ya = -map.pps;
+            hp.y = (cam.pos.y / map.pps) * map.pps - 1;
+            hp_ya = -map.pps;
+        } else {
+            hp.y = (cam.pos.y / map.pps) * map.pps + map.pps;
+            hp_ya = map.pps; 
         }
-        else {
-            AP.y = (cam.pos.y / map.pps) * map.pps + map.pps;
-            AP_Ya = map.pps;
-        }
-        
-        // calculate AP_Xa
-        AP_Xa = -AP_Ya / tan(angle);
-        
-        // calculate AP.x
-        AP.x = cam.pos.x + (cam.pos.y - AP.y) / tan(angle);
-        
-        // calculate BP.x and BP_Xa
-        if (angle > M_PI/2 && angle < (3*M_PI)/2) {
-            // if ray facing left
-            BP.x = (cam.pos.x / map.pps) * map.pps - 1;
-            BP_Xa = -map.pps;
-        }
-        else {
-            BP.x = (cam.pos.x / map.pps) * map.pps + map.pps;
-            BP_Xa = map.pps;
-        }
-        
-        // calculate BP_Ya
-        BP_Ya = -BP_Xa * tan(angle);
 
-        // find BP.y
-        BP.y = cam.pos.y + (cam.pos.x - BP.x) * tan(angle);
+        hp_xa = -hp_ya / tan(angle);
 
-        // get current checking map tile for horizontal intersection 
-        vec2_t checking_map_tile = {0};
-        checking_map_tile.x = AP.x / map.pps;
-        checking_map_tile.y = AP.y / map.pps;
+        hp.x = cam.pos.x + (cam.pos.y - hp.y) / tan(angle);
+        
+        // Calculate vertical point first xa and ya
+        if (angle >= M_PI/2 && angle <= (3*M_PI)/2) {
+            vp.x = (cam.pos.x / map.pps) * map.pps - 1;
+            vp_xa = -map.pps;
+        } else {
+            vp.x = (cam.pos.x / map.pps) * map.pps + map.pps;
+            vp_xa = map.pps;
+        }
 
-        // find horizontal wall hit
+        vp_ya = -vp_xa * tan(angle);
+
+        vp.y = cam.pos.y + (cam.pos.x - vp.x) * tan(angle);
+
+        vec2_t map_tile = {0};
+        map_tile.x = hp.x / map.pps;
+        map_tile.y = hp.y / map.pps;
+        
+        // Find horizontal intersection
         bool h_hit = false;
-        while (!h_hit && checking_map_tile.x >= 0 && checking_map_tile.x < map.width &&
-                checking_map_tile.y >= 0 && checking_map_tile.y < map.height) {
-            if (map.map_data[checking_map_tile.x][checking_map_tile.y] == 1) {
+        while (!h_hit && map_tile.x >= 0 && map_tile.x < MAP_DEFAULT_WIDTH &&
+                map_tile.y >= 0 && map_tile.y < MAP_DEFAULT_HEIGHT) {
+            if (map.map_data[map_tile.x][map_tile.y] == 1) {
                 h_hit = true;
-            }
-            else {
-                AP.x += AP_Xa;
-                AP.y += AP_Ya;
-                checking_map_tile.x = AP.x / map.pps;
-                checking_map_tile.y = AP.y / map.pps;
+            } else {
+                hp.x += hp_xa;
+                hp.y += hp_ya;
+                map_tile.x = hp.x / map.pps;
+                map_tile.y = hp.y / map.pps;
             }
         }
-        
-        // get current checking map tile for vertical intersection
-        checking_map_tile.x = BP.x / map.pps;
-        checking_map_tile.y = BP.y / map.pps;
 
-        // find vertical wall hit
+        map_tile.x = vp.x / map.pps;
+        map_tile.y = vp.y / map.pps; 
+
+        // Find vertical intersection
         bool v_hit = false;
-        while (!v_hit && checking_map_tile.x >= 0 && checking_map_tile.x < map.width &&
-                checking_map_tile.y >= 0 && checking_map_tile.y < map.height) {
-                
-            if (map.map_data[checking_map_tile.x][checking_map_tile.y] == 1) {
+        while (!v_hit && map_tile.x >= 0 && map_tile.x < MAP_DEFAULT_WIDTH &&
+               map_tile.y >= 0 && map_tile.y < MAP_DEFAULT_HEIGHT) {
+            if (map.map_data[map_tile.x][map_tile.y] == 1) {
                 v_hit = true;
+            } else {
+                vp.x += vp_xa;
+                vp.y += vp_ya;
+                map_tile.x = vp.x / map.pps;
+                map_tile.y = vp.y / map.pps;
             }
-            else {
-                BP.x += BP_Xa;
-                BP.y += BP_Ya;
-                checking_map_tile.x = BP.x / map.pps;
-                checking_map_tile.y = BP.y / map.pps;
+        } 
+
+    #ifdef DEBUG
+        if (mode == MODE_2D) {
+            if (h_hit) {
+                SDL_SetRenderDrawColor(sdl.renderer, 0, 255, 0, 0);
+                SDL_Rect r1 = {hp.x, hp.y, 5, 5};
+                SDL_RenderFillRect(sdl.renderer, &r1);
+            }
+            if (v_hit) {
+                SDL_SetRenderDrawColor(sdl.renderer, 0, 0, 255, 0);
+                SDL_Rect r2 = {vp.x, vp.y, 5, 5};
+                SDL_RenderFillRect(sdl.renderer, &r2);
             }
         }
+    #endif   
 
-        /* once we have horizontal and vertical intersections points
-         * render the one with shortest distance from camera position */
-        vec2_t ray_length_1d = {0};
-        if (h_hit)
-            ray_length_1d.x = abs(sqrt(pow(cam.pos.x - AP.x, 2) + pow(cam.pos.y - AP.y, 2)));
-        else
-            ray_length_1d.x = INT_MAX;
+        vec2f_t ray_length = {0};
+        if (h_hit) ray_length.x = abs(sqrt(pow(cam.pos.x - hp.x, 2) + pow(cam.pos.y - hp.y, 2)));
+        else       ray_length.x = INT_MAX;
 
-        if (v_hit)
-            ray_length_1d.y = abs(sqrt(pow(cam.pos.x - BP.x, 2) + pow(cam.pos.y - BP.y, 2)));
-        else 
-            ray_length_1d.y = INT_MAX;
+        if (v_hit) ray_length.y = abs(sqrt(pow(cam.pos.x - vp.x, 2) + pow(cam.pos.y - vp.y, 2)));
+        else       ray_length.y = INT_MAX;
 
         if (mode == MODE_2D) {
-            if (ray_length_1d.x < ray_length_1d.y)
-                sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, AP.x, AP.y);
-            else
-                sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, BP.x, BP.y);
-        }
-        else {
+            if (ray_length.x <= ray_length.y) sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, hp.x, hp.y);
+            else                              sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, vp.x, vp.y);
+        } else {
             bool side;
-            int distance;
-            if (ray_length_1d.x < ray_length_1d.y) {
-                distance = ray_length_1d.x;
-                side = false; 
-            }
-            else {
-                distance = ray_length_1d.y;
-                side = true; 
+            float distance;
+
+            if (ray_length.x <= ray_length.y) {
+                distance = ray_length.x;
+                side = false;
+            } else {
+                distance = ray_length.y;
+                side = true;
             }
 
             // adjust fish-eye
@@ -293,19 +279,17 @@ void DDA() {
             if (adj_angle > 2 * M_PI) adj_angle -= 2 * M_PI;
             distance *= cos(adj_angle);
 
-            double projected_wall_height = (map.wall_h_3d * proj_plane.w) / distance; 
-            int rect_x = r * proj_plane.width_per_line; 
-            int rect_y = (proj_plane.h / 2) - (projected_wall_height / 2);
-            int rect_w = proj_plane.width_per_line; 
-
-            sdl_render_rect(&sdl, &config, rect_x, rect_y, rect_w, projected_wall_height, side);
+            double projected_wall_height = (map.wall_h_3d * proj_plane.w) / distance;
+            int x = r * proj_plane.width_per_line;
+            int y = (proj_plane.h / 2) - (projected_wall_height / 2);
+            int w = proj_plane.width_per_line;
+             
+            sdl_render_rect(&sdl, &config, x, y, w, projected_wall_height, side);
         }
 
-
-        // increment angle for the next ray
+        // Increment angle for the next ray
         angle -= ONE_RADIANT;
-        if (angle - ONE_RADIANT < 0)
-            angle += 2 * M_PI;
-    }
+        if (angle < 0) angle += 2 * M_PI;
+    } 
 }
 

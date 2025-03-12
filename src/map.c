@@ -30,3 +30,4 @@ void map_init(map_t *map, int w, int h, int window_h) {
 bool load_map_from_file(char *path) {
     // TODO
 }
+

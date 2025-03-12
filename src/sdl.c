@@ -120,8 +120,8 @@ void sdl_render_map(sdl_t *sdl, config_t *config, map_t *map) {
     uint8_t b = (config->walls_color >> 8) & 0xFF;
     uint8_t a = (config->walls_color >> 0) & 0xFF;
 
-    for (int i = 0; i < map->width; i++) {
-        for (int j = 0; j < map->height; j++) {
+    for (int i = 0; i < map->height; i++) {
+        for (int j = 0; j < map->width; j++) {
             if (map->map_data[i][j] == 1) {
                 SDL_SetRenderDrawColor(sdl->renderer, r, g, b, a);
                 SDL_RenderFillRect(sdl->renderer, &rect);
