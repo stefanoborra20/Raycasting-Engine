@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[]) {
     
-    if (!raycaster_init()) exit(EXIT_FAILURE);
+    if (!raycaster_init(argc, argv)) exit(EXIT_FAILURE);
 
     if (!raycaster_start()) exit(EXIT_FAILURE);
 

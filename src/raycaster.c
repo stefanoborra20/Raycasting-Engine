@@ -10,16 +10,17 @@ projection_plane_t proj_plane = {0};
 
 int mode;
 
-bool raycaster_init() {
+bool raycaster_init(int argc, char **argv) {
     
     /* Initialize every component */
-    if (!config_init(&config)) return false;
+    if (!config_init(&config, argc, argv)) return false;
     if (!sdl_init(&sdl, &config)) return false;
     
-    camera_init(&cam, 50, 50);
+    camera_init(&cam, 50, config.window_h / 2);
     
     map_init(&map, 0, 0, config.window_h);
 
+    // default starting mode
     mode = MODE_2D;
 
     // init projection plane values
@@ -46,13 +47,6 @@ bool raycaster_start() {
         .x = (float) cam.pos.x,
         .y = (float) cam.pos.y
     };
-
-    // for debug
-    map.map_data[3][2] = 1;
-    map.map_data[3][3] = 1;
-    map.map_data[3][4] = 1;
-    map.map_data[3][5] = 1;
-    map.map_data[3][6] = 1;
 
     /* Main loop here */
     while (running)  {
@@ -290,7 +284,8 @@ void DDA() {
             int y = (proj_plane.h / 2) - (projected_wall_height / 2);
             int w = proj_plane.width_per_line;
              
-            sdl_render_rect(&sdl, &config, x, y, w, projected_wall_height, side);
+            // render column
+            sdl_render_col(&sdl, &config, x, y, w, projected_wall_height, side);
         }
 
         // Increment angle for the next ray

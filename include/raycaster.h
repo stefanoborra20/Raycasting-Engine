@@ -24,7 +24,7 @@ typedef struct {
     double angle_between_rays;
 } projection_plane_t;
 
-bool raycaster_init();
+bool raycaster_init(int, char **);
 
 bool raycaster_start();
 

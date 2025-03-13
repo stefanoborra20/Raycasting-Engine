@@ -1,8 +1,8 @@
 #include "sdl.h"
 
-bool config_init(config_t *config) {
-    // set defaults for now
-    config->title = "RayCaster Demo";
+bool config_init(config_t *config, int argc, char **argv) {
+    // set defaults
+    config->title = "RayCaster Engine";
     config->window_x = SDL_WINDOWPOS_CENTERED;
     config->window_h = SDL_WINDOWPOS_CENTERED;
     config->window_w = 1366;
@@ -13,12 +13,18 @@ bool config_init(config_t *config) {
     config->rays_color = 0xFFFF0000; // yellow
     config->walls_3d_color = 0x00900000; // green
     config->walls_side_3d_color = 0x00700000; // dark green
+    config->floor_color = 0xC19A6B; // brown
     
     // other
     config->num_of_rays = DEFAULT_RAYS_NUM; 
     config->pixel_outlines = true; 
     config->show_cursor = true;
     
+    // set flags
+    for (int i = 1; i < argc; i++) {
+        if (strncmp(argv[i], "-rn", strlen("-rn")) == 0) config->num_of_rays = strtoul(argv[++i], NULL, 10);
+    }
+
     return true;
 }
 
@@ -157,7 +163,7 @@ void sdl_render_ray(sdl_t *sdl, config_t *config, int x0, int y0, int x1, int y1
     SDL_RenderDrawLine(sdl->renderer, x0 + 5, y0 + 5, x1, y1);
 }
 
-void sdl_render_rect(sdl_t *sdl, config_t *config, int x, int y, int w, int h, bool side) {
+void sdl_render_col(sdl_t *sdl, config_t *config, int x, int y, int w, int h, bool side) {
     
     uint32_t color = side == true ? config->walls_3d_color : config->walls_side_3d_color;
 
@@ -179,5 +185,26 @@ void sdl_render_rect(sdl_t *sdl, config_t *config, int x, int y, int w, int h, b
     if (config->pixel_outlines) {
        SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 255);
        SDL_RenderDrawRect(sdl->renderer, &col);
+    }
+
+    // render floor 
+    SDL_Rect floor = {
+        .x = x,
+        .y = y + h + 1,
+        .w = w,
+        .h = config->window_h - h - y 
+    };
+
+     r = (config->floor_color >> 24) & 0xFF;
+     g = (config->floor_color >> 16) & 0xFF;
+     b = (config->floor_color >> 8) & 0xFF;
+     a = (config->floor_color >> 4) & 0xFF; 
+    
+    SDL_SetRenderDrawColor(sdl->renderer, r, g, b, a);
+    SDL_RenderFillRect(sdl->renderer, &floor);
+    
+    if (config->pixel_outlines) {
+        SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 255);
+        SDL_RenderDrawRect(sdl->renderer, &floor);
     }
 }

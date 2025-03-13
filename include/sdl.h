@@ -22,6 +22,7 @@ typedef struct {
     uint32_t rays_color; // rays color in 2D vision
     uint32_t walls_3d_color; // wall color in 3D vision
     uint32_t walls_side_3d_color; // wall shading when seen from the side
+    uint32_t floor_color; 
 
     // others
     int num_of_rays;
@@ -29,7 +30,7 @@ typedef struct {
     bool show_cursor;
 } config_t;
 
-bool config_init(config_t *);
+bool config_init(config_t *, int argc, char **argv);
 
 bool sdl_init(sdl_t *, config_t *config);
 
@@ -52,6 +53,6 @@ void sdl_render_map(sdl_t *, config_t *, map_t *);
 
 void sdl_render_ray(sdl_t *, config_t *, int, int, int, int);
                          
-void sdl_render_rect(sdl_t *, config_t *, int, int, int, int, bool);
+void sdl_render_col(sdl_t *, config_t *, int, int, int, int, bool);
 
 #endif
