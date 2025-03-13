@@ -15,6 +15,7 @@ bool config_init(config_t *config) {
     config->walls_side_3d_color = 0x00700000; // dark green
     
     // other
+    config->num_of_rays = DEFAULT_RAYS_NUM; 
     config->pixel_outlines = true; 
     config->show_cursor = true;
     

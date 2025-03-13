@@ -25,7 +25,9 @@ bool raycaster_init() {
     // init projection plane values
     proj_plane.w = config.window_w;
     proj_plane.h = config.window_h;
-    proj_plane.width_per_line =  proj_plane.w / cam.fov;
+    proj_plane.width_per_line =  proj_plane.w / config.num_of_rays;
+    proj_plane.angle_between_rays = cam.fov == DEFAULT_FOV ? 
+       ONE_RADIANT : (cam.fov / config.num_of_rays) * M_PI / 180.0f; 
 
     return true;
 }
@@ -133,6 +135,10 @@ bool raycaster_start() {
             sdl_render_map(&sdl, &config, &map);
             sdl_render_camera(&sdl, cam.pos.x, cam.pos.y);
         }
+        else if (mode == MODE_MAP_EDITOR) {
+            sdl_render_map(&sdl, &config, &map);
+
+        }
 
         // perform DDA
         DDA();
@@ -174,7 +180,7 @@ void DDA() {
     float hp_xa, hp_ya;
     float vp_xa, vp_ya;
 
-    for (int r = 0; r < 60; r++) {
+    for (int r = 0; r < config.num_of_rays; r++) {
         // Calculate horizontal point first xa and ya
         if (angle >= 0 && angle <= M_PI) {
             hp.y = (cam.pos.y / map.pps) * map.pps - 1;
@@ -246,9 +252,9 @@ void DDA() {
             if (v_hit) {
                 SDL_SetRenderDrawColor(sdl.renderer, 0, 0, 255, 0);
                 SDL_Rect r2 = {vp.x, vp.y, 5, 5};
-                SDL_RenderFillRect(sdl.renderer, &r2);
-            }
-        }
+                SDL_RenderFillRect(sdl.renderer, &r2); 
+            } 
+        } 
     #endif   
 
         vec2f_t ray_length = {0};
@@ -261,7 +267,7 @@ void DDA() {
         if (mode == MODE_2D) {
             if (ray_length.x <= ray_length.y) sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, hp.x, hp.y);
             else                              sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, vp.x, vp.y);
-        } else {
+        } else if (mode == MODE_3D) {
             bool side;
             float distance;
 
@@ -288,7 +294,7 @@ void DDA() {
         }
 
         // Increment angle for the next ray
-        angle -= ONE_RADIANT;
+        angle -= proj_plane.angle_between_rays;
         if (angle < 0) angle += 2 * M_PI;
     } 
 }

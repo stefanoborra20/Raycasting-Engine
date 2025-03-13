@@ -21,6 +21,7 @@
 typedef struct {
     int w, h;
     int width_per_line;
+    double angle_between_rays;
 } projection_plane_t;
 
 bool raycaster_init();

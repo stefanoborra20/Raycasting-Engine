@@ -5,6 +5,8 @@
 #include <SDL.h>
 #include "map.h"
 
+#define DEFAULT_RAYS_NUM 60 // same as default fov
+
 typedef struct {
     SDL_Window *window;
     SDL_Renderer *renderer;
@@ -22,6 +24,7 @@ typedef struct {
     uint32_t walls_side_3d_color; // wall shading when seen from the side
 
     // others
+    int num_of_rays;
     bool pixel_outlines;
     bool show_cursor;
 } config_t;
