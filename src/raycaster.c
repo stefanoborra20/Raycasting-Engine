@@ -27,8 +27,7 @@ bool raycaster_init(int argc, char **argv) {
     proj_plane.w = config.window_w;
     proj_plane.h = config.window_h;
     proj_plane.width_per_line =  proj_plane.w / config.num_of_rays;
-    proj_plane.angle_between_rays = cam.fov == DEFAULT_FOV ? 
-       ONE_RADIANT : (cam.fov / config.num_of_rays) * M_PI / 180.0f; 
+    proj_plane.angle_between_rays = (cam.fov / config.num_of_rays) * M_PI / 180.0f;
 
     return true;
 }
