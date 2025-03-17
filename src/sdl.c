@@ -13,7 +13,7 @@ bool config_init(config_t *config, int argc, char **argv) {
     config->rays_color = 0xFFFF0000; // yellow
     config->walls_3d_color = 0x00900000; // green
     config->walls_side_3d_color = 0x00700000; // dark green
-    config->floor_color = 0xC19A6B; // brown
+    config->floor_color = 0x65432100; // brown
     
     // other
     config->num_of_rays = DEFAULT_RAYS_NUM; 
@@ -95,6 +95,13 @@ void sdl_tick_cursor(config_t *config) {
     if (config->show_cursor) SDL_ShowCursor(SDL_ENABLE);
     else SDL_ShowCursor(SDL_DISABLE);
 }
+
+void sdl_set_cursor(config_t *config, bool value) {
+    config->show_cursor = value;
+    if (config->show_cursor) SDL_ShowCursor(SDL_ENABLE);
+    else SDL_ShowCursor(SDL_DISABLE);
+}
+
 void sdl_clear_screen(sdl_t *sdl, uint32_t color) {
     uint8_t r = (color >> 24) & 0xFF;
     uint8_t g = (color >> 16) & 0xFF;
@@ -190,15 +197,15 @@ void sdl_render_col(sdl_t *sdl, config_t *config, int x, int y, int w, int h, bo
     // render floor 
     SDL_Rect floor = {
         .x = x,
-        .y = y + h + 1,
+        .y = y + h,
         .w = w,
         .h = config->window_h - h - y 
     };
 
-     r = (config->floor_color >> 24) & 0xFF;
-     g = (config->floor_color >> 16) & 0xFF;
-     b = (config->floor_color >> 8) & 0xFF;
-     a = (config->floor_color >> 4) & 0xFF; 
+    r = (config->floor_color >> 24) & 0xFF;
+    g = (config->floor_color >> 16) & 0xFF;
+    b = (config->floor_color >> 8) & 0xFF;
+    a = (config->floor_color >> 4) & 0xFF; 
     
     SDL_SetRenderDrawColor(sdl->renderer, r, g, b, a);
     SDL_RenderFillRect(sdl->renderer, &floor);
@@ -207,4 +214,12 @@ void sdl_render_col(sdl_t *sdl, config_t *config, int x, int y, int w, int h, bo
         SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 255);
         SDL_RenderDrawRect(sdl->renderer, &floor);
     }
+
+    // render ceiling
+    SDL_Rect ceiling = {
+        .x = x,
+        .y = 0,
+        .w = w,
+        .h = y
+    };
 }

@@ -65,11 +65,22 @@ bool raycaster_start() {
                     case SDLK_d: cam.right = true; break;
                     case SDLK_LSHIFT: cam.speed = DEFAULT_SHIFT_SPEED; break;
                        
-                    case SDLK_v: mode = mode == MODE_2D ? MODE_3D : MODE_2D;
-                                 sdl_tick_cursor(&config); 
-                                 break;
+                    case SDLK_v:
+                        if (mode == MODE_MAP_EDITOR) {
+                            mode = MODE_2D;
+                            sdl_set_cursor(&config, true);
+                        }
+                        else if (mode == MODE_2D) {
+                            mode = MODE_3D;
+                            sdl_set_cursor(&config, false);
+                        }
+                        else {
+                            mode = MODE_2D;
+                            sdl_set_cursor(&config, true); 
+                        }
+                    break;
 
-                    case SDLK_m: mode = MODE_MAP_EDITOR; break;
+                    case SDLK_m: mode = MODE_MAP_EDITOR; sdl_set_cursor(&config, true); break;
 
                     case SDLK_p: config.pixel_outlines = !config.pixel_outlines; break;
                     case SDLK_q: running = false; break;
@@ -131,7 +142,21 @@ bool raycaster_start() {
         }
         else if (mode == MODE_MAP_EDITOR) {
             sdl_render_map(&sdl, &config, &map);
+            switch (event.type) {
+                case SDL_MOUSEBUTTONDOWN:
+                    int x, y;
+                    SDL_GetMouseState(&x, &y);
 
+                    if (event.button.button == SDL_BUTTON_LEFT) {
+                        /* put wall where clicked */
+                        map_put_wall_at(&map, x, y);
+                    }
+                    else if (event.button.button == SDL_BUTTON_RIGHT) {
+                        /* remove wall where clicked */
+                        map_remove_wall_at(&map, x, y);
+                    } 
+                    break;
+            }
         }
 
         // perform DDA
@@ -165,10 +190,6 @@ void DDA() {
     angle += (cam.fov / 2) * ONE_RADIANT;
     if (angle > 2 * M_PI) angle -= 2 * M_PI;
 
-#ifdef DEBUG
-    printf("Camera Angle: %.2f\nRay Angle: %.2f\n", cam.dir_angle, angle);
-#endif
-
     vec2f_t hp = {0}; // Horizontal intersection point
     vec2f_t vp = {0}; // Vertical intersection point
     float hp_xa, hp_ya;
@@ -177,7 +198,7 @@ void DDA() {
     for (int r = 0; r < config.num_of_rays; r++) {
         // Calculate horizontal point first xa and ya
         if (angle >= 0 && angle <= M_PI) {
-            hp.y = (cam.pos.y / map.pps) * map.pps - 1;
+            hp.y = (cam.pos.y / map.pps) * map.pps - 0.001f;
             hp_ya = -map.pps;
         } else {
             hp.y = (cam.pos.y / map.pps) * map.pps + map.pps;
@@ -236,21 +257,6 @@ void DDA() {
             }
         } 
 
-    #ifdef DEBUG
-        if (mode == MODE_2D) {
-            if (h_hit) {
-                SDL_SetRenderDrawColor(sdl.renderer, 0, 255, 0, 0);
-                SDL_Rect r1 = {hp.x, hp.y, 5, 5};
-                SDL_RenderFillRect(sdl.renderer, &r1);
-            }
-            if (v_hit) {
-                SDL_SetRenderDrawColor(sdl.renderer, 0, 0, 255, 0);
-                SDL_Rect r2 = {vp.x, vp.y, 5, 5};
-                SDL_RenderFillRect(sdl.renderer, &r2); 
-            } 
-        } 
-    #endif   
-
         vec2f_t ray_length = {0};
         if (h_hit) ray_length.x = abs(sqrt(pow(cam.pos.x - hp.x, 2) + pow(cam.pos.y - hp.y, 2)));
         else       ray_length.x = INT_MAX;
@@ -261,7 +267,8 @@ void DDA() {
         if (mode == MODE_2D) {
             if (ray_length.x <= ray_length.y) sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, hp.x, hp.y);
             else                              sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, vp.x, vp.y);
-        } else if (mode == MODE_3D) {
+        } 
+        else if (mode == MODE_3D) {
             bool side;
             float distance;
 
@@ -287,6 +294,23 @@ void DDA() {
             // render column
             sdl_render_col(&sdl, &config, x, y, w, projected_wall_height, side);
         }
+
+   #ifdef DEBUG
+        printf("Camera Angle: %.2f\nRay Angle: %.2f\n"
+                "Ray[%d]\nLength horizontal: %.2f\nLength vertical: %.2f\n\n", cam.dir_angle, angle, r, ray_length.x, ray_length.y);
+        if (mode == MODE_2D) {
+            if (h_hit) {
+                SDL_SetRenderDrawColor(sdl.renderer, 0, 255, 0, 0);
+                SDL_Rect r1 = {hp.x, hp.y, 5, 5};
+                SDL_RenderFillRect(sdl.renderer, &r1);
+            }
+            if (v_hit) {
+                SDL_SetRenderDrawColor(sdl.renderer, 0, 0, 255, 0);
+                SDL_Rect r2 = {vp.x, vp.y, 5, 5};
+                SDL_RenderFillRect(sdl.renderer, &r2); 
+            } 
+        } 
+    #endif   
 
         // Increment angle for the next ray
         angle -= proj_plane.angle_between_rays;

@@ -42,6 +42,8 @@ void sdl_on_resize(sdl_t *, config_t *, map_t *);
 
 void sdl_tick_cursor(config_t *);
 
+void sdl_set_cursor(config_t *, bool);
+
 // rendering
 void sdl_clear_screen(sdl_t *, uint32_t);
 

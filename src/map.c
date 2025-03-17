@@ -31,3 +31,25 @@ bool load_map_from_file(char *path) {
     // TODO
 }
 
+bool map_put_wall_at(map_t *map, int x, int y) {
+    int row = y / map->pps;
+    int col = x / map->pps;
+
+    if (row >= 0 && row < map->height && col >= 0 && col < map->width) {
+        map->map_data[col][row] = 1;
+        return true;
+    } 
+    return false;
+}
+
+bool map_remove_wall_at(map_t *map, int x, int y) {
+    int row = y / map->pps;
+    int col = x / map->pps;
+
+    if (row >= 0 && row < map->height && col >= 0 && col < map->width) {
+        map->map_data[col][row] = 0;
+        return true;
+    }
+    return false;
+}
+
