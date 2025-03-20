@@ -23,7 +23,7 @@ bool raycaster_init(int argc, char **argv) {
     // default starting mode
     mode = MODE_2D;
 
-    // init projection plane values
+    // init projection plane 
     proj_plane.w = config.window_w;
     proj_plane.h = config.window_h;
     proj_plane.width_per_line =  proj_plane.w / config.num_of_rays;
@@ -171,6 +171,9 @@ bool raycaster_quit() {
 
 
 void DDA() {
+
+    bool last_side;
+
     if (config.show_cursor) {
         vec2_t mouse_coords = {0};
         SDL_GetMouseState(&mouse_coords.x, &mouse_coords.y);
@@ -182,9 +185,10 @@ void DDA() {
          * (-) to atan2 function, then because atan2 only gives numbers 
          * in the range of 0-PI and -PI-0 we add 2xPI when angle is <0 */
         cam.dir_angle = -atan2((double)dir.y, (double)dir.x); // angle in radiants
-        if (cam.dir_angle < 0) cam.dir_angle += 2 * M_PI;
     }
 
+    if (cam.dir_angle < 0) cam.dir_angle += 2 * M_PI;
+    else if (cam.dir_angle > 2 * M_PI) cam.dir_angle -= 2 * M_PI;
     double angle = cam.dir_angle;
     angle += (cam.fov / 2) * ONE_RADIANT;
     if (angle > 2 * M_PI) angle -= 2 * M_PI;
@@ -210,7 +214,7 @@ void DDA() {
         
         // Calculate vertical point first xa and ya
         if (angle >= M_PI/2 && angle <= (3*M_PI)/2) {
-            vp.x = (cam.pos.x / map.pps) * map.pps - 1;
+            vp.x = (cam.pos.x / map.pps) * map.pps - 0.001f;
             vp_xa = -map.pps;
         } else {
             vp.x = (cam.pos.x / map.pps) * map.pps + map.pps;
@@ -264,20 +268,31 @@ void DDA() {
         else       ray_length.y = INT_MAX;
 
         if (mode == MODE_2D) {
-            if (ray_length.x <= ray_length.y) sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, hp.x, hp.y);
-            else                              sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, vp.x, vp.y);
+            if (ray_length.x < ray_length.y) sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, hp.x, hp.y);
+            else                             sdl_render_ray(&sdl, &config, cam.pos.x, cam.pos.y, vp.x, vp.y);
         } 
         else if (mode == MODE_3D) {
             bool side;
             float distance;
 
-            if (ray_length.x <= ray_length.y) {
+            if (ray_length.x < ray_length.y) {
                 distance = ray_length.x;
                 side = false;
-            } else {
+                last_side = side;
+            } 
+            else if (ray_length.y < ray_length.x) {
                 distance = ray_length.y;
                 side = true;
+                last_side = side;
             }
+            else {
+                distance = ray_length.x;
+                side = last_side;
+            }
+
+    #ifdef DEBUG
+            printf("Side: %d\n", side);
+    #endif
 
             // adjust fish-eye
             double adj_angle = cam.dir_angle - angle;
