@@ -1,6 +1,7 @@
 # Raycasting Engine
 
 A minimal raycasting engine made in C and [SDL2](https://www.libsdl.org).
+![Image](https://github.com/user-attachments/assets/ae98a1e0-f599-4346-a4ac-10918b4583aa)
 
 ## Build/Run/Debug/Flags
 ```console
