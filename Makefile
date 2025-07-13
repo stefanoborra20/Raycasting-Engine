@@ -2,7 +2,7 @@ CC = gcc
 INCLUDE_DIR = -Iinclude
 CFLAGS = $(INCLUDE_DIR) -std=c17 -Wall -Wextra
 DEBUG = -DDEBUG
-LDFLAGS = `sdl2-config --cflags --libs` -lm
+LDFLAGS = `sdl2-config --cflags --libs` -lSDL2_image -lm
 
 SRCS = $(wildcard src/*.c)
 

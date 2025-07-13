@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <SDL.h>
 #include "map.h"
+#include "textures.h"
 
 #define DEFAULT_RAYS_NUM 60 // same as default fov
 

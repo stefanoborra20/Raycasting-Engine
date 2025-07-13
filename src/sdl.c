@@ -61,11 +61,19 @@ bool sdl_init(sdl_t *sdl, config_t *config) {
     if (!config->show_cursor)
         SDL_ShowCursor(SDL_DISABLE);
 
+
+    /* Load Textures */
+    sdl_texture_loader_init();
+    if (!textures_load(sdl->renderer)) {
+        return false;
+    }
+
     return true;
 }
 
 bool sdl_quit(sdl_t *sdl) {
     /* Destroy SDL components */
+    textures_destroy();
     SDL_DestroyRenderer(sdl->renderer);
     SDL_DestroyWindow(sdl->window);
 
