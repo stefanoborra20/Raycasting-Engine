@@ -172,18 +172,16 @@ bool raycaster_quit() {
 
 void DDA() {
 
-    bool last_side;
-
     if (config.show_cursor) {
-        vec2_t mouse_coords = {0};
+            vec2_t mouse_coords = {0};
         SDL_GetMouseState(&mouse_coords.x, &mouse_coords.y);
 
         vec2_t dir = {0};
         dir.x = mouse_coords.x - cam.pos.x;
         dir.y = mouse_coords.y - cam.pos.y;
         /* Since y-axis is inverted but angle system is regular we add
-         * (-) to atan2 function, then because atan2 only gives numbers 
-         * in the range of 0-PI and -PI-0 we add 2xPI when angle is <0 */
+         * (-) to atan2 function, then since atan2 only returns numbers 
+         * in the range of 0-PI and -PI-0 we add 2xPI when angle is < 0 */
         cam.dir_angle = -atan2((double)dir.y, (double)dir.x); // angle in radiants
     }
 
@@ -273,6 +271,7 @@ void DDA() {
         } 
         else if (mode == MODE_3D) {
             bool side;
+            bool last_side;
             float distance;
 
             if (ray_length.x < ray_length.y) {
@@ -331,4 +330,3 @@ void DDA() {
         if (angle < 0) angle += 2 * M_PI;
     } 
 }
-
