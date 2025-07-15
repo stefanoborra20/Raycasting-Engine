@@ -61,11 +61,21 @@ bool sdl_init(sdl_t *sdl, config_t *config) {
     if (!config->show_cursor)
         SDL_ShowCursor(SDL_DISABLE);
 
+
+    /* Load Textures */
+    sdl_texture_loader_init();
+    if (!textures_load(sdl->renderer)) {
+        return false;
+    }
+
+
+    
     return true;
 }
 
 bool sdl_quit(sdl_t *sdl) {
     /* Destroy SDL components */
+    textures_destroy();
     SDL_DestroyRenderer(sdl->renderer);
     SDL_DestroyWindow(sdl->window);
 
@@ -170,6 +180,31 @@ void sdl_render_ray(sdl_t *sdl, config_t *config, int x0, int y0, int x1, int y1
     SDL_RenderDrawLine(sdl->renderer, x0 + 5, y0 + 5, x1, y1);
 }
 
+
+void sdl_render_floor(sdl_t *sdl, config_t *config, int x, int y, int w, int h) {
+
+    // render floor 
+    SDL_Rect floor = {
+        .x = x,
+        .y = y + h,
+        .w = w,
+        .h = config->window_h - h - y 
+    };
+
+    uint8_t r = (config->floor_color >> 24) & 0xFF;
+    uint8_t g = (config->floor_color >> 16) & 0xFF;
+    uint8_t b = (config->floor_color >> 8) & 0xFF;
+    uint8_t a = (config->floor_color >> 4) & 0xFF; 
+    
+    SDL_SetRenderDrawColor(sdl->renderer, r, g, b, a);
+    SDL_RenderFillRect(sdl->renderer, &floor);
+    
+    if (config->pixel_outlines) {
+        SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 255);
+        SDL_RenderDrawRect(sdl->renderer, &floor);
+    }
+}
+
 void sdl_render_col(sdl_t *sdl, config_t *config, int x, int y, int w, int h, bool side) {
     
     uint32_t color = side == true ? config->walls_3d_color : config->walls_side_3d_color;
@@ -195,25 +230,7 @@ void sdl_render_col(sdl_t *sdl, config_t *config, int x, int y, int w, int h, bo
     }
 
     // render floor 
-    SDL_Rect floor = {
-        .x = x,
-        .y = y + h,
-        .w = w,
-        .h = config->window_h - h - y 
-    };
-
-    r = (config->floor_color >> 24) & 0xFF;
-    g = (config->floor_color >> 16) & 0xFF;
-    b = (config->floor_color >> 8) & 0xFF;
-    a = (config->floor_color >> 4) & 0xFF; 
-    
-    SDL_SetRenderDrawColor(sdl->renderer, r, g, b, a);
-    SDL_RenderFillRect(sdl->renderer, &floor);
-    
-    if (config->pixel_outlines) {
-        SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 255);
-        SDL_RenderDrawRect(sdl->renderer, &floor);
-    }
+    sdl_render_floor(sdl, config, x, y, w, h);
 
     // render ceiling
     SDL_Rect ceiling = {
@@ -223,3 +240,15 @@ void sdl_render_col(sdl_t *sdl, config_t *config, int x, int y, int w, int h, bo
         .h = y
     };
 }
+
+void sdl_render_textured_col(sdl_t *sdl, config_t *config, int x, int y, int w, int h, float wall_offset, int texture_id) {
+    SDL_Texture *t = texture_get(texture_id);
+    int texture_x = (int) (wall_offset * texture_get_w(texture_id));
+    int texture_sample_width = ceil((float)texture_get_w(texture_id) / (float) config->num_of_rays); 
+
+    SDL_Rect src = {texture_x, 0, texture_sample_width, texture_get_h(texture_id)};
+    SDL_Rect dst = {x, y, w, h};
+    
+    SDL_RenderCopy(sdl->renderer, t, &src, &dst);
+}
+

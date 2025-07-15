@@ -83,6 +83,7 @@ bool raycaster_start() {
 
                     case SDLK_p: config.pixel_outlines = !config.pixel_outlines; break;
                     case SDLK_q: running = false; break;
+                    case SDLK_t: config.active_textures = !config.active_textures; break;
                 }
                 break;
             case SDL_KEYUP:
@@ -305,7 +306,23 @@ void DDA() {
             int w = proj_plane.width_per_line;
              
             // render column
-            sdl_render_col(&sdl, &config, x, y, w, projected_wall_height, side);
+            if (!config.active_textures)
+                sdl_render_col(&sdl, &config, x, y, w, projected_wall_height, side);
+            else {
+                
+                /** int texture_id = map[x][y] or something like this **/
+
+                /** Get the x hit position of the wall **/
+                float wall_offset = 0.0f;
+                if (ray_length.x < ray_length.y) {
+                     wall_offset = fmod(hp.x, map.pps) / (float) map.pps;
+                } else {
+                    wall_offset = fmod(vp.y, map.pps) / (float) map.pps;
+                }
+
+                int texture_id= 1; // just render one texture for now
+                sdl_render_textured_col(&sdl, &config, x, y, w, projected_wall_height, wall_offset, texture_h);
+            }
         }
 
    #ifdef DEBUG

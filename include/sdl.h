@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <SDL.h>
 #include "map.h"
+#include "textures.h"
 
 #define DEFAULT_RAYS_NUM 60 // same as default fov
 
@@ -23,6 +24,10 @@ typedef struct {
     uint32_t walls_3d_color; // wall color in 3D vision
     uint32_t walls_side_3d_color; // wall shading when seen from the side
     uint32_t floor_color; 
+
+    // textures
+    bool active_textures;
+    uint32_t texture_shading;
 
     // others
     int num_of_rays;
@@ -56,5 +61,7 @@ void sdl_render_map(sdl_t *, config_t *, map_t *);
 void sdl_render_ray(sdl_t *, config_t *, int, int, int, int);
                          
 void sdl_render_col(sdl_t *, config_t *, int, int, int, int, bool);
+
+void sdl_render_textured_col(sdl_t *, config_t *, int, int, int, int, float, int);
 
 #endif
