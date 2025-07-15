@@ -14,7 +14,6 @@ bool sdl_texture_loader_init() {
 
 bool textures_load(SDL_Renderer *renderer) {
    struct dirent *entry;
-   int i = 0;
 
    DIR *dir = opendir(RES_DIR);
    if (!dir) {
@@ -28,12 +27,11 @@ bool textures_load(SDL_Renderer *renderer) {
            char full_path[256];
            snprintf(full_path, sizeof(full_path), "%s/%s", RES_DIR, entry->d_name);
 
-           if (texture_load(renderer, full_path, i)) {
+           if (texture_load(renderer, full_path, texture_count)) {
 #ifdef DEBUG 
-           printf("Loaded %s texture\n", full_path);
+               printf("Loaded %s texture\n", full_path);
 #endif
-                ++i;
-                texture_count++;
+               texture_count++;
             } else {
                 return false;
             }
@@ -41,12 +39,6 @@ bool textures_load(SDL_Renderer *renderer) {
    }
    
    closedir(dir);
-
-
-   SDL_Rect dst = {50, 50, 120, 120};
-   SDL_RenderClear(renderer);
-   SDL_RenderCopy(renderer, textures[0].t, NULL, &dst);
-   SDL_RenderPresent(renderer);
 
    return true;
 }
@@ -69,6 +61,7 @@ bool texture_load(SDL_Renderer *renderer, const char *path, int i) {
 
     textures[i].id = i;
     textures[i].t = texture;
+    SDL_QueryTexture(texture, NULL, NULL, &textures[i].w, &textures[i].h);
 
     SDL_FreeSurface(surface);
     return true;
@@ -80,6 +73,22 @@ SDL_Texture* texture_get(int id) {
     }
 
     return NULL;
+}
+
+int texture_get_w(int id) {
+    if (id > 0 && id < texture_count) {
+        return textures[id].w;
+    }
+    
+    return -1;
+}
+
+int texture_get_h(int id) {
+    if (id > 0 && id < texture_count) {
+        return textures[id].h;
+    }
+
+    return -1;
 }
 
 void textures_destroy() {

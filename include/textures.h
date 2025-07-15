@@ -11,6 +11,7 @@
 
 typedef struct {
     int id;
+    int w, h;
     SDL_Texture *t;
 } texture_container_t;
 
@@ -21,6 +22,10 @@ bool textures_load(SDL_Renderer*);
 bool texture_load(SDL_Renderer*, const char*, int);
 
 SDL_Texture* texture_get(int);
+
+int texture_get_w(int);
+
+int texture_get_h(int);
 
 void textures_destroy();
 
