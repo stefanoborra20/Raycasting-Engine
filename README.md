@@ -28,7 +28,6 @@ for debug mode.
 - Wall textures
 
 ## 🎮 Controls
-## 🎮 Controls
 
 | Mode         | Action                  | Key / Mouse Input     | Description                          |
 |--------------|-------------------------|-----------------------|--------------------------------------|
