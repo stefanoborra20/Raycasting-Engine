@@ -1,8 +1,7 @@
 # Raycasting Engine
 
 A minimal [raycasting](https://en.wikipedia.org/wiki/Ray_casting) engine made in **C** using [SDL2](https://www.libsdl.org).
-![Image](https://github.com/user-attachments/assets/ee8c29bb-84c6-455c-99cf-c6782a16bf54)
-
+![Image](https://github.com/user-attachments/assets/1c5ab01f-2085-4184-94c5-c02d28aaae84)
 ## 🚀 Build & Run
 ```console
 make
@@ -34,13 +33,13 @@ for debug mode.
 | General      | Switch view             | `v`                   | Toggle between 2D and 3D             |
 |              | Open map editor         | `m`                   | Launch the editor                    |
 |              | Toggle outlines         | `p`                   | Show/hide square outlines            |
+|              | Toggle textures         | `t`                   | Enable / disable textures            |
 |              | Quit engine             | `q`                   | Exit the application                 |
 | 2D Mode      | Move                    | `W / A / S / D`       | Navigate in 2D space                 |
 |              | View direction          | `Mouse`               | Move cursor to change view           |
 |              | Slow walk               | `Shift`               | Reduced movement speed               |
 | 3D Mode      | Move up/down            | `W / S`               | Vertical movement                    |
 |              | Turn view               | `A / D`               | Rotate left/right                    |
-|              | Toggle textures         | `t`                   | Enable / disable textures            |
 |              | Slow walk               | `Shift`               | Reduced movement speed               |
 | Map Editor   | Add wall                | 🖱️ **Left Click**      | Place a wall tile                    |
 |              | Remove wall             | 🖱️ **Right Click**     | Delete a wall tile                   |
