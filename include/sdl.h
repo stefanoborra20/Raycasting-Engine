@@ -58,6 +58,8 @@ bool sdl_render_camera(sdl_t *, int, int);
 
 void sdl_render_map(sdl_t *, config_t *, map_t *);
 
+bool sdl_render_map_editor(sdl_t *, config_t *, map_t *, SDL_Rect *);
+
 void sdl_render_ray(sdl_t *, config_t *, int, int, int, int);
                          
 void sdl_render_col(sdl_t *, config_t *, int, int, int, int, bool);

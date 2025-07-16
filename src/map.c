@@ -31,12 +31,12 @@ bool load_map_from_file(char *path) {
     // TODO
 }
 
-bool map_put_wall_at(map_t *map, int x, int y) {
+bool map_put_wall_at(map_t *map, int x, int y, int value) {
     int row = y / map->pps;
     int col = x / map->pps;
 
     if (row >= 0 && row < map->height && col >= 0 && col < map->width) {
-        map->map_data[col][row] = 1;
+        map->map_data[col][row] = value;
         return true;
     } 
     return false;

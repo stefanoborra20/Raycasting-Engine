@@ -19,7 +19,7 @@ bool sdl_texture_loader_init();
 
 bool textures_load(SDL_Renderer*);
 
-bool texture_load(SDL_Renderer*, const char*, int);
+bool texture_load(SDL_Renderer *, const char *, int);
 
 SDL_Texture* texture_get(int);
 

@@ -9,6 +9,7 @@ map_t map = {0};
 projection_plane_t proj_plane = {0};
 
 int mode;
+int selected = -1; /** Selected texture in Map Editor **/
 
 bool raycaster_init(int argc, char **argv) {
     
@@ -141,15 +142,35 @@ bool raycaster_start() {
             sdl_render_camera(&sdl, cam.pos.x, cam.pos.y);
         }
         else if (mode == MODE_MAP_EDITOR) {
-            sdl_render_map_editor(&sdl, &config, &map);
+            SDL_Rect texture_rects[MAX_TEXTURES] = {0};
+            sdl_render_map_editor(&sdl, &config, &map, texture_rects);
+
+            bool click_on_texture = false;
+            
+            if (selected != -1) {
+              /* Highlight selected texture */
+              SDL_Rect highlight = texture_rects[selected];
+              SDL_SetRenderDrawColor(sdl.renderer, 0, 255, 0, 0);
+              SDL_RenderDrawRect(sdl.renderer, &highlight);
+            }
+
             switch (event.type) {
-                case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONDOWN: /* Inserting / removing walls */
                     int x, y;
-                    SDL_GetMouseState(&x, &y);
+                    SDL_GetMouseState(&x, &y);  
 
                     if (event.button.button == SDL_BUTTON_LEFT) {
-                        /* put wall where clicked */
-                        map_put_wall_at(&map, x, y);
+                        /* Find selected texture */
+                        for (int i = 0; i < texture_get_count(); i++) {
+                            if (SDL_PointInRect(&(SDL_Point){x, y}, &texture_rects[i])) {
+                               selected = i;
+                               click_on_texture = true;
+                               break; 
+                            }
+                        }
+                        
+                    if (selected != -1 && !click_on_texture) 
+                        map_put_wall_at(&map, x, y, selected);
                     }
                     else if (event.button.button == SDL_BUTTON_RIGHT) {
                         /* remove wall where clicked */
@@ -232,7 +253,7 @@ void DDA() {
         bool h_hit = false;
         while (!h_hit && map_tile.x >= 0 && map_tile.x < MAP_DEFAULT_WIDTH &&
                 map_tile.y >= 0 && map_tile.y < MAP_DEFAULT_HEIGHT) {
-            if (map.map_data[map_tile.x][map_tile.y] == 1) {
+            if (map.map_data[map_tile.x][map_tile.y] != 0) {
                 h_hit = true;
             } else {
                 hp.x += hp_xa;
@@ -249,7 +270,7 @@ void DDA() {
         bool v_hit = false;
         while (!v_hit && map_tile.x >= 0 && map_tile.x < MAP_DEFAULT_WIDTH &&
                map_tile.y >= 0 && map_tile.y < MAP_DEFAULT_HEIGHT) {
-            if (map.map_data[map_tile.x][map_tile.y] == 1) {
+            if (map.map_data[map_tile.x][map_tile.y] != 0) {
                 v_hit = true;
             } else {
                 vp.x += vp_xa;
@@ -310,17 +331,22 @@ void DDA() {
                 sdl_render_col(&sdl, &config, x, y, w, projected_wall_height, side);
             else {
                 
-                /** int texture_id = map[x][y] or something like this **/
+                int texture_id;
+                int row, col;
 
                 /** Get the x hit position of the wall **/
                 float wall_offset = 0.0f;
                 if (ray_length.x < ray_length.y) {
                      wall_offset = fmod(hp.x, map.pps) / (float) map.pps;
+                     row = hp.x / map.pps;
+                     col = hp.y / map.pps;
                 } else {
                     wall_offset = fmod(vp.y, map.pps) / (float) map.pps;
+                    row = vp.x / map.pps;
+                    col = vp.y / map.pps;
                 }
 
-                int texture_id= 1; // just render one texture for now
+                texture_id = map.map_data[row][col];
                 sdl_render_textured_col(&sdl, &config, x, y, w, projected_wall_height, wall_offset, texture_id);
             }
         }
