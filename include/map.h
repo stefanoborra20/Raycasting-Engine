@@ -20,7 +20,7 @@ void map_init(map_t*, int w, int h, int window_h);
 
 bool load_map_from_file(char *path);
 
-bool map_put_wall_at(map_t *, int, int);
+bool map_put_wall_at(map_t *, int, int, int);
 
 bool map_remove_wall_at(map_t *, int, int);
 

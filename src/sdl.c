@@ -138,34 +138,85 @@ bool sdl_render_camera(sdl_t *sdl, int x, int y) {
 void sdl_render_map(sdl_t *sdl, config_t *config, map_t *map) {
     SDL_Rect rect = {0, 0, map->pps, map->pps};
 
-    // get walls rgba
-    uint8_t r = (config->walls_color >> 24) & 0xFF;
-    uint8_t g = (config->walls_color >> 16) & 0xFF;
-    uint8_t b = (config->walls_color >> 8) & 0xFF;
-    uint8_t a = (config->walls_color >> 0) & 0xFF;
 
-    for (int i = 0; i < map->height; i++) {
-        for (int j = 0; j < map->width; j++) {
-            if (map->map_data[i][j] == 1) {
-                SDL_SetRenderDrawColor(sdl->renderer, r, g, b, a);
-                SDL_RenderFillRect(sdl->renderer, &rect);
-            }
-            else {
-                SDL_SetRenderDrawColor(sdl->renderer, 0, 0, 0, 0);
-                SDL_RenderFillRect(sdl->renderer, &rect);
-            }
+    if (!config->active_textures) {
+        // Get walls rgba
+        uint8_t r = (config->walls_color >> 24) & 0xFF;
+        uint8_t g = (config->walls_color >> 16) & 0xFF;
+        uint8_t b = (config->walls_color >> 8) & 0xFF;
+        uint8_t a = (config->walls_color >> 0) & 0xFF;
 
-            if (config->pixel_outlines) {
-                // render pixel outlines
-                SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 0);
-                SDL_RenderDrawRect(sdl->renderer, &rect);
+        for (int i = 0; i < map->height; i++) {
+            for (int j = 0; j < map->width; j++) {
+                if (map->map_data[i][j] != 0) {
+                    SDL_SetRenderDrawColor(sdl->renderer, r, g, b, a);
+                    SDL_RenderFillRect(sdl->renderer, &rect);
+                }
+                else {
+                    SDL_SetRenderDrawColor(sdl->renderer, 0, 0, 0, 0);
+                    SDL_RenderFillRect(sdl->renderer, &rect);
+                }
+
+                if (config->pixel_outlines) {
+                    // render pixel outlines
+                    SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 0);
+                    SDL_RenderDrawRect(sdl->renderer, &rect);
+                }
+                
+                rect.y += map->pps;
             }
-            
-            rect.y += map->pps;
+            rect.x += map->pps;
+            rect.y = 0;
         }
-        rect.x += map->pps;
-        rect.y = 0;
     }
+    else { // Render 2D map with textures
+        SDL_Texture *t;
+        SDL_Rect src;
+        for (int i = 0; i < map->height; i++) {
+            for (int j = 0; j < map->width; j++) {
+               t = texture_get(map->map_data[i][j]); 
+               src = (SDL_Rect) {0, 0, map->pps, map->pps};
+               SDL_RenderCopy(sdl->renderer, t, &src, &rect);
+
+               if (config->pixel_outlines) {
+                   SDL_SetRenderDrawColor(sdl->renderer, 255, 255, 255, 0);
+                   SDL_RenderDrawRect(sdl->renderer, &rect);
+               }
+
+               rect.y += map->pps;
+            }
+            rect.x += map->pps;
+            rect.y = 0;
+        }
+    }
+}
+
+bool sdl_render_map_editor(sdl_t* sdl, config_t *config, map_t *map, SDL_Rect *texture_rects) {
+    sdl_render_map(sdl, config, map);
+
+    int texture_count = texture_get_count();
+
+    int screen_x = map->width * map->pps + 1, screen_y = 1;
+    SDL_Rect src;
+    SDL_Rect dst = {screen_x, screen_y, 0, 0};
+
+    /* Render Textures */
+    for (int i = 0; i < texture_count; i++) {
+        SDL_Texture *t = texture_get(i);
+        src = (SDL_Rect) {0, 0, texture_get_w(i), texture_get_h(i)}; 
+        dst = (SDL_Rect) {screen_x, screen_y, texture_get_w(i), texture_get_h(i)};
+        
+        texture_rects[i] = dst;
+
+        SDL_RenderCopy(sdl->renderer, t, &src, &dst);
+
+        screen_x += texture_get_w(i) + 1;
+        if (screen_x > config->window_w) {
+            screen_x = map->width * map->pps + 1;
+            screen_y += texture_get_h(1) + 1;
+        }
+    }
+    return true;
 }
 
 void sdl_render_ray(sdl_t *sdl, config_t *config, int x0, int y0, int x1, int y1) {
