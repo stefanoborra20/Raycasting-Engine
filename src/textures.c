@@ -97,3 +97,6 @@ void textures_destroy() {
     }
 }
 
+int texture_get_count() {
+    return texture_count;
+}

@@ -141,7 +141,7 @@ bool raycaster_start() {
             sdl_render_camera(&sdl, cam.pos.x, cam.pos.y);
         }
         else if (mode == MODE_MAP_EDITOR) {
-            sdl_render_map(&sdl, &config, &map);
+            sdl_render_map_editor(&sdl, &config, &map);
             switch (event.type) {
                 case SDL_MOUSEBUTTONDOWN:
                     int x, y;
@@ -321,7 +321,7 @@ void DDA() {
                 }
 
                 int texture_id= 1; // just render one texture for now
-                sdl_render_textured_col(&sdl, &config, x, y, w, projected_wall_height, wall_offset, texture_h);
+                sdl_render_textured_col(&sdl, &config, x, y, w, projected_wall_height, wall_offset, texture_id);
             }
         }
 

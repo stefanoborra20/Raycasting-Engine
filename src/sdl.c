@@ -168,6 +168,35 @@ void sdl_render_map(sdl_t *sdl, config_t *config, map_t *map) {
     }
 }
 
+bool sdl_render_map_editor(sdl_t* sdl, config_t *config, map_t *map) {
+    sdl_render_map(sdl, config, map);
+
+    int texture_count = texture_get_count();
+    if (texture_count <= 0) {
+        printf("No textures loaded\n");
+        return false;
+    }
+
+    int screen_x = map->width * map->pps + 1, screen_y = 1;
+    SDL_Rect src;
+    SDL_Rect dst = {screen_x, screen_y, 0, 0};
+
+    /* Render Textures */
+    for (int i = 0; i < texture_count; i++) {
+        SDL_Texture *t = texture_get(i);
+        src = (SDL_Rect) {0, 0, texture_get_w(i), texture_get_h(i)}; 
+        dst = (SDL_Rect) {screen_x, screen_y, texture_get_w(i), texture_get_h(i)};
+
+        SDL_RenderCopy(sdl->renderer, t, &src, &dst);
+
+        screen_x += texture_get_w(i) + 1;
+        if (screen_x > config->window_w) {
+            screen_x = map->width * map->pps + 1;
+            screen_y += texture_get_h(1) + 1;
+        }
+    }
+}
+
 void sdl_render_ray(sdl_t *sdl, config_t *config, int x0, int y0, int x1, int y1) {
     uint8_t r = (config->rays_color >> 24) & 0xFF;
     uint8_t g = (config->rays_color >> 16) & 0xFF;

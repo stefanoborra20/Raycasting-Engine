@@ -29,5 +29,7 @@ int texture_get_h(int);
 
 void textures_destroy();
 
+int texture_get_count();
+
 #endif
 
